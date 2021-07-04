@@ -149,15 +149,15 @@ public class UserDAO implements IUserDAO {
         User user = null;
         String query = "{Call get_user_by_id(?)}";
         try (Connection connection = getConnection();
-        CallableStatement callableStatement = connection.prepareCall(query)){
-        callableStatement.setInt(1, id);
-        ResultSet resultSet = callableStatement.executeQuery();
-        while (resultSet.next()){
-            String name = resultSet.getString("name");
-            String email = resultSet.getString("email");
-            String country = resultSet.getString("country");
-            user = new User(id, name, email, country);
-        }
+             CallableStatement callableStatement = connection.prepareCall(query)) {
+            callableStatement.setInt(1, id);
+            ResultSet resultSet = callableStatement.executeQuery();
+            while (resultSet.next()) {
+                String name = resultSet.getString("name");
+                String email = resultSet.getString("email");
+                String country = resultSet.getString("country");
+                user = new User(id, name, email, country);
+            }
         } catch (SQLException throwables) {
             printSQLException(throwables);
         }
@@ -168,13 +168,13 @@ public class UserDAO implements IUserDAO {
     public void insertUserStore(User user) throws SQLException {
         String query = "{Call insert_user(? , ? , ?)}";
         try (Connection connection = getConnection();
-        CallableStatement callableStatement = connection.prepareCall(query)){
+             CallableStatement callableStatement = connection.prepareCall(query)) {
             callableStatement.setString(1, user.getName());
             callableStatement.setString(2, user.getEmail());
             callableStatement.setString(3, user.getCountry());
             System.out.println(callableStatement);
             callableStatement.executeUpdate();
-        } catch (SQLException e){
+        } catch (SQLException e) {
             printSQLException(e);
         }
     }
@@ -226,5 +226,66 @@ public class UserDAO implements IUserDAO {
             printSQLException(e);
         }
         return users;
+    }
+
+    @Override
+
+    public void addUserTransaction(User user, int[] permisions) {
+        Connection conn = null;
+        // for insert a new user
+        PreparedStatement pstmt = null;
+        // for assign permision to user
+        PreparedStatement pstmtAssignment = null;
+        // for getting user id
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            // set auto commit to false
+            conn.setAutoCommit(false);
+            // Insert user
+            pstmt = conn.prepareStatement(INSERT_USERS_SQL, Statement.RETURN_GENERATED_KEYS);
+            pstmt.setString(1, user.getName());
+            pstmt.setString(2, user.getEmail());
+            pstmt.setString(3, user.getCountry());
+            int rowAffected = pstmt.executeUpdate();
+            // get user id
+            rs = pstmt.getGeneratedKeys();
+            int userId = 0;
+            if (rs.next())
+                userId = rs.getInt(1);
+            // in case the insert operation successes, assign permision to user
+            if (rowAffected == 1) {
+                // assign permision to user
+                String sqlPivot = "INSERT INTO user_permision(user_id,permision_id) "
+                        + "VALUES(?,?)";
+                pstmtAssignment = conn.prepareStatement(sqlPivot);
+                for (int permisionId : permisions) {
+                    pstmtAssignment.setInt(1, userId);
+                    pstmtAssignment.setInt(2, permisionId);
+                    pstmtAssignment.executeUpdate();
+                }
+                conn.commit();
+            } else {
+                conn.rollback();
+            }
+        } catch (SQLException ex) {
+            // roll back the transaction
+            try {
+                if (conn != null)
+                    conn.rollback();
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+            System.out.println(ex.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (pstmt != null) pstmt.close();
+                if (pstmtAssignment != null) pstmtAssignment.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+        }
     }
 }
