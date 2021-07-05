@@ -143,6 +143,16 @@ public class UserDAO implements IUserDAO {
         return rowDeleted;
     }
 
+    public void deleteUser_2(int id) {
+        try (Connection connection = getConnection();
+             CallableStatement callableStatement = connection.prepareCall("{CALL delete_user(?)}");) {
+            callableStatement.setInt(1, id);
+            callableStatement.executeUpdate();
+        } catch (SQLException throwables) {
+            printSQLException(throwables);
+        }
+    }
+
     @Override
     public boolean updateUser(User user) throws SQLException {
         boolean rowUpdated;
@@ -156,9 +166,10 @@ public class UserDAO implements IUserDAO {
         }
         return rowUpdated;
     }
+
     public void updateUser_2(User user) {
         try (Connection connection = getConnection();
-        CallableStatement callableStatement = connection.prepareCall("{call edit_user(?,?,?,?)}");){
+             CallableStatement callableStatement = connection.prepareCall("{call edit_user(?,?,?,?)}");) {
             callableStatement.setString(1, user.getName());
             callableStatement.setString(2, user.getEmail());
             callableStatement.setString(3, user.getCountry());
@@ -383,9 +394,9 @@ public class UserDAO implements IUserDAO {
         List<User> list = new ArrayList<>();
         String query = "{Call show_list_user()}";
         try (Connection connection = getConnection();
-        CallableStatement callableStatement = getConnection().prepareCall(query)){
+             CallableStatement callableStatement = getConnection().prepareCall(query)) {
             ResultSet resultSet = callableStatement.executeQuery();
-            while (resultSet.next()){
+            while (resultSet.next()) {
                 int id = resultSet.getInt("id");
                 String name = resultSet.getString("name");
                 String email = resultSet.getString("email");
