@@ -26,4 +26,6 @@ public interface IUserDAO {
 
     public void insertUpdateUseTransaction();
 
+    List<User> showUserList();
+
 }

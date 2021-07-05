@@ -302,7 +302,6 @@ public class UserDAO implements IUserDAO {
     }
 
     @Override
-
     public void insertUpdateWithoutTransaction() {
         try (Connection conn = getConnection();
              Statement statement = conn.createStatement();
@@ -332,7 +331,6 @@ public class UserDAO implements IUserDAO {
     }
 
     @Override
-
     public void insertUpdateUseTransaction() {
         try (Connection conn = getConnection();
              Statement statement = conn.createStatement();
@@ -366,5 +364,25 @@ public class UserDAO implements IUserDAO {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public List<User> showUserList() {
+        List<User> list = new ArrayList<>();
+        String query = "{Call show_list_user()}";
+        try (Connection connection = getConnection();
+        CallableStatement callableStatement = getConnection().prepareCall(query)){
+            ResultSet resultSet = callableStatement.executeQuery();
+            while (resultSet.next()){
+                int id = resultSet.getInt("id");
+                String name = resultSet.getString("name");
+                String email = resultSet.getString("email");
+                String country = resultSet.getString("country");
+                list.add(new User(id, name, email, country));
+            }
+        } catch (SQLException throwables) {
+            printSQLException(throwables);
+        }
+        return list;
     }
 }
