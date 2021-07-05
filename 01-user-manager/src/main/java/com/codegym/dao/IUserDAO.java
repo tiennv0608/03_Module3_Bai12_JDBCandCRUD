@@ -28,4 +28,6 @@ public interface IUserDAO {
 
     List<User> showUserList();
 
+    void updateUser_2(User user);
+
 }

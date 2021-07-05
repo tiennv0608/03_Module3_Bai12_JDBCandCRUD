@@ -134,9 +134,11 @@ public class UserServlet extends HttpServlet {
         String country = request.getParameter("country");
 
         User book = new User(id, name, email, country);
-        userDAO.updateUser(book);
-        RequestDispatcher dispatcher = request.getRequestDispatcher("user/edit.jsp");
-        dispatcher.forward(request, response);
+//        userDAO.updateUser(book);
+        userDAO.updateUser_2(book);
+        listUser(request, response);
+//        RequestDispatcher dispatcher = request.getRequestDispatcher("user/edit.jsp");
+//        dispatcher.forward(request, response);
     }
 
     private void deleteUser(HttpServletRequest request, HttpServletResponse response)

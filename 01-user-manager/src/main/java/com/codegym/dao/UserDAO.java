@@ -156,6 +156,18 @@ public class UserDAO implements IUserDAO {
         }
         return rowUpdated;
     }
+    public void updateUser_2(User user) {
+        try (Connection connection = getConnection();
+        CallableStatement callableStatement = connection.prepareCall("{call edit_user(?,?,?,?)}");){
+            callableStatement.setString(1, user.getName());
+            callableStatement.setString(2, user.getEmail());
+            callableStatement.setString(3, user.getCountry());
+            callableStatement.setInt(4, user.getId());
+            callableStatement.executeUpdate();
+        } catch (SQLException throwables) {
+            printSQLException(throwables);
+        }
+    }
 
     @Override
     public User getUserById(int id) {
